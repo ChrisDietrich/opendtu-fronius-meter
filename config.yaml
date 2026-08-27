@@ -1,0 +1,111 @@
+# Home Assistant Supervisor App (add-on) definition. Installed via
+# Settings -> Add-ons -> Add-on Store -> Repositories, using this repo's
+# URL (see repository.yaml).
+#
+# Serves ONE combined Fronius virtual meter, fed from any number of
+# OpenDTU inverters (the `inverters` list below) -- see
+# opendtu_fronius_meter.py's module docstring for why this is one combined
+# meter rather than one per inverter: a real Fronius GEN24 rejects a
+# second Modbus TCP "additional meter" entry that shares an IP address
+# with an existing one, regardless of port, which made "one virtual meter
+# per inverter" a dead end on a typical single-IP Home Assistant host (see
+# the sibling hoymiles-fronius-meter project, which hit exactly this).
+# Aggregating avoids the problem entirely: GEN24 only ever sees one
+# Modbus TCP meter to register here. No host_network needed either, since
+# there's only ever one port to expose.
+#
+# Each inverter entry still gets attributed to its own wired phase
+# (L1/L2/L3) within the combined meter's 3-phase register set, rather
+# than collapsing every inverter onto one phase regardless of which leg
+# it's actually wired to.
+
+name: "OpenDTU Fronius Virtual Meter"
+version: "0.1.0"
+slug: "opendtu_fronius_meter"
+description: >-
+  Emulates ONE Fronius-compatible SunSpec Modbus TCP smart meter, fed
+  live and combined from any number of OpenDTU-managed inverters' MQTT
+  data, so a Fronius GEN24's Energy Profiling picks it up as a single
+  additional Generator source. Each inverter is attributed to its own
+  wired phase within that one meter.
+url: "https://github.com/ChrisDietrich/opendtu-fronius-meter"
+arch:
+  - amd64
+  - aarch64
+startup: services
+boot: auto
+ports:
+  1502/tcp: 1502
+ports_description:
+  1502/tcp: >-
+    Modbus TCP port the combined virtual meter listens on -- point the
+    GEN24's additional-meter (Energy Profiling / Generator) config at
+    this. Fronius GEN24's "add meter" dialog only offers a fixed dropdown
+    of 502 or 1502; change "Modbus TCP port" below and this mapping's
+    host-side value to match if you need 502 instead (e.g. because 1502
+    is already used by another additional meter).
+
+# Global settings (mqtt_host through meter_device_address) describe the
+# one combined virtual meter this App serves. Field descriptions shown in
+# the Configuration UI live in translations/en.yaml, not here -- keep
+# that file in sync when adding or renaming a field.
+#
+# `inverters` holds one entry per OpenDTU-managed inverter to combine into
+# that one meter. Most people only need to fill in each entry's first
+# field (mqtt_base_topic) and its Wired phase -- the seven topic fields
+# all get derived automatically from the base topic (see
+# InverterSource._derive_topics_from_base() in opendtu_fronius_meter.py),
+# no need to look up an inverter's serial number or OpenDTU's exact topic
+# names. Home Assistant's Configuration UI doesn't show a description
+# under each individual field *inside* this list (a UI limitation) --
+# see this list's own description below for the field-by-field summary,
+# and DOCS.md for full detail.
+options:
+  mqtt_host: ""
+  mqtt_port: 1883
+  mqtt_username: ""
+  mqtt_password: ""
+  update_interval_seconds: 2
+  log_level: "info"
+  tcp_listen_port: 1502
+  meter_manufacturer: "Hoymiles"
+  meter_model: "OpenDTU Virtual Meter"
+  meter_serial: "OTU00001"
+  meter_device_address: 241
+  inverters:
+    - mqtt_base_topic: ""
+      power_topic: ""
+      energy_topic: ""
+      energy_scale: 1000
+      voltage_topic: ""
+      current_topic: ""
+      frequency_topic: ""
+      power_factor_topic: ""
+      reactive_power_topic: ""
+      meter_phase: 1
+
+schema:
+  mqtt_host: str
+  mqtt_port: port
+  mqtt_username: str?
+  mqtt_password: password?
+  update_interval_seconds: float
+  log_level: list(debug|info|warning|error)
+  tcp_listen_port: port
+  meter_manufacturer: str
+  meter_model: str
+  meter_serial: str
+  meter_device_address: int
+  inverters:
+    - mqtt_base_topic: str?
+      # All seven below are optional overrides now that mqtt_base_topic can
+      # derive them.
+      power_topic: str?
+      energy_topic: str?
+      energy_scale: float
+      voltage_topic: str?
+      current_topic: str?
+      frequency_topic: str?
+      power_factor_topic: str?
+      reactive_power_topic: str?
+      meter_phase: list(1|2|3)

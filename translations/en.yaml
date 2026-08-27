@@ -1,0 +1,134 @@
+# Field names/descriptions shown next to each option in the App's
+# Configuration tab. Keep in sync with config.yaml's options/schema --
+# every key/nesting here should exist there, and vice versa.
+#
+# Note: Home Assistant's Configuration UI does NOT render a description
+# for individual fields *inside* a list-of-dicts option (confirmed while
+# building the sibling hoymiles-fronius-meter App -- only the list's own
+# top-level description shows). The `inverters` entry below still
+# documents each sub-field's name/description for completeness and in
+# case a future Home Assistant version renders it, but the guidance that
+# actually reaches users lives in `inverters`'s own description.
+configuration:
+  mqtt_host:
+    name: MQTT broker host
+    description: >-
+      IP address or hostname of your MQTT broker -- the same one your
+      OpenDTU instance(s) and Home Assistant already use.
+  mqtt_port:
+    name: MQTT broker port
+    description: Usually 1883.
+  mqtt_username:
+    name: MQTT username
+    description: Leave empty if your broker doesn't require login credentials.
+  mqtt_password:
+    name: MQTT password
+    description: Leave empty if your broker doesn't require login credentials.
+  update_interval_seconds:
+    name: Update interval (seconds)
+    description: How often the Modbus registers refresh from the latest MQTT values.
+  log_level:
+    name: Log verbosity
+    description: Set to "debug" for troubleshooting; "info" is fine day to day.
+  tcp_listen_port:
+    name: Modbus TCP port
+    description: >-
+      The port the combined virtual meter listens on. Fronius GEN24's
+      "add meter" dialog only offers a choice of 502 or 1502 -- pick
+      whichever isn't already used by another additional meter you
+      register.
+  meter_manufacturer:
+    name: Manufacturer name shown in GEN24/Solar.web
+    description: Cosmetic only.
+  meter_model:
+    name: Meter name shown in GEN24/Solar.web
+    description: Cosmetic only -- shows up as this device's model name.
+  meter_serial:
+    name: Virtual meter serial number
+    description: >-
+      A serial number for this virtual meter, not any inverter's real
+      hardware serial. Cosmetic, shown in the GEN24 UI.
+  meter_device_address:
+    name: SunSpec device address
+    description: >-
+      Must differ from the primary meter's (usually 240) and from any
+      other additional/virtual meter you register. 241, 242, ... work
+      well.
+  inverters:
+    name: Inverters
+    description: >-
+      One entry per OpenDTU-managed inverter -- all combine into the one
+      virtual meter above. Note: this list doesn't show a description
+      under each individual field below (a Home Assistant UI limitation),
+      so the key ones are summarized here -- full detail is in the
+      Documentation tab. Per entry: fill in "OpenDTU base topic" (from
+      OpenDTU's Settings -> MQTT page) and every topic field below it
+      derives automatically; set "Wired phase" to the physical phase this
+      inverter is wired to (L1 if unsure, confirm later -- multiple
+      inverters can share a phase, their contributions add). "Energy unit
+      scale" is 1000 if this inverter's energy topic reports kWh
+      (OpenDTU's default), 1 if it already reports Wh. The seven topic
+      fields are advanced overrides -- only set them for a non-standard
+      MQTT layout; each normally takes one topic but accepts a
+      comma-separated list if you need to sum more than one.
+    mqtt_base_topic:
+      name: OpenDTU base topic
+      description: >-
+        The base MQTT topic this inverter's OpenDTU instance publishes
+        under (check OpenDTU's Settings -> MQTT page for "Topic"). Once
+        this is set, the power/energy/voltage/current/frequency/power
+        factor/reactive power topics below are all derived automatically
+        using OpenDTU's standard topic layout -- you shouldn't need to
+        fill those in yourself, and you don't need to know your
+        inverter's serial number. Leave this empty only if you need to
+        override individual topics below by hand.
+    power_topic:
+      name: Power topic (advanced override)
+      description: >-
+        Leave empty to use "<base topic>/ac/power" (only set this for a
+        non-standard MQTT layout).
+    energy_topic:
+      name: Energy topic (advanced override)
+      description: >-
+        Leave empty to use "<base topic>/ac/yieldtotal" (only set this
+        for a non-standard MQTT layout).
+    energy_scale:
+      name: Energy unit scale
+      description: >-
+        1000 if the energy topic reports kWh (OpenDTU's default), 1 if it
+        already reports Wh.
+    voltage_topic:
+      name: Voltage topic (advanced override)
+      description: >-
+        Leave empty to use "<base topic>/+/0/voltage" (the "+" matches
+        whatever inverter serial is publishing; only set this for a
+        non-standard MQTT layout).
+    current_topic:
+      name: Current topic (advanced override)
+      description: >-
+        Leave empty to use "<base topic>/+/0/current" (only set this for
+        a non-standard MQTT layout).
+    frequency_topic:
+      name: Frequency topic (advanced override)
+      description: >-
+        Leave empty to use "<base topic>/+/0/frequency" (only set this
+        for a non-standard MQTT layout).
+    power_factor_topic:
+      name: Power factor topic (advanced override)
+      description: >-
+        Leave empty to use "<base topic>/+/0/powerfactor" (only set this
+        for a non-standard MQTT layout).
+    reactive_power_topic:
+      name: Reactive power topic (advanced override)
+      description: >-
+        Leave empty to use "<base topic>/+/0/reactivepower" (only set
+        this for a non-standard MQTT layout).
+    meter_phase:
+      name: Wired phase (L1 / L2 / L3)
+      description: >-
+        Which physical phase this inverter's AC output is connected to at
+        your electrical panel. If you don't know, start with 1 (L1) and
+        confirm later: watch your primary meter's per-phase power while
+        briefly disconnecting this inverter and see which phase's reading
+        drops. Multiple inverters can share the same phase -- their
+        contributions are added together.

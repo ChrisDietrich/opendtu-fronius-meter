@@ -1,0 +1,6 @@
+# Pinned to a version where the classic mutable ModbusSlaveContext API
+# (setValues/getValues) is still fully supported. pymodbus 3.10+ has started
+# deprecating this in favour of a new SimData/SimDevice simulator framework;
+# pinning avoids chasing that migration for what is a small, stable script.
+pymodbus==3.6.9
+paho-mqtt>=2.1.0,<3.0.0
