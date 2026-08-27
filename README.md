@@ -6,14 +6,19 @@ A **Home Assistant App** that makes a Fronius GEN24 (or GEN24 Plus) aware
 of production from one or more OpenDTU-managed inverters (e.g. Hoymiles
 HM/HMS microinverters) that OpenDTU already tracks, but the GEN24
 otherwise can't see. It emulates a Fronius-compatible SunSpec Modbus TCP
-smart meter, fed live and **combined from every configured inverter**,
+smart meter, fed live and combined from every configured inverter,
 each attributed to its own wired phase.
+
+![Logo](opendtu-fronius.jpg)
 
 Once registered as an additional meter (role: **Generator**) in the
 GEN24's Device Configuration -> Components settings, the combined
 production shows up correctly in the local power-flow display, Solar.web
 totals, and self-consumption statistics, without needing to physically
 rewire anything or install a second real meter.
+
+![Screenshot of the power-flow display showing Hoymiles production](screenshot.png)
+
 
 ## Why a combined meter, not one per inverter?
 
@@ -45,14 +50,21 @@ leg it's actually wired to -- see [DOCS.md](DOCS.md) for how that works.
 - An MQTT broker reachable from both OpenDTU and this Home Assistant
   instance
 
+
 ## Installation
 
+Use the one-click badge:
+
+[![Add repository to my Home Assistant](https://my.home-assistant.io/badges/supervisor_add_addon_repository.svg)](https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2FChrisDietrich%2Fhoymiles-fronius-meter)
+
+Or manually:
 1. In Home Assistant, go to **Settings -> Apps -> App Store**
 2. Click the **:** menu (top right) -> **Repositories**
 3. Add this repository's URL:
    `https://github.com/ChrisDietrich/opendtu-fronius-meter`
 4. Find **"OpenDTU Fronius Virtual Meter"** in the store and click
    **Install**
+
 
 ## Configuration
 
@@ -70,9 +82,14 @@ leg it's actually wired to -- see [DOCS.md](DOCS.md) for how that works.
    * Log in as technician
    * Device Configuration -> Components
    * Click Add component
+   * See screenshot below for an example, use the IP address of the HA instance
+
+![Adding a Modbus TCP meter](add-modbus-tcp-meter.png)
+
 
 See [DOCS.md](DOCS.md) (the App's Documentation tab) for full
 configuration details, phase wiring, and troubleshooting.
+
 
 ## Authors & contributors
 
@@ -86,6 +103,7 @@ Initial version by [Chris Dietrich](https://chrisdietri.ch).
   more than one
 - [OpenDTU2ModbusTCP](https://github.com/Indiana8000/SmartHomeScripts/tree/main/adapter/OpenDTU2ModbusTCP), a script that implements a similar idea
 - [fronius_smart_meter_modbus_tcp_emulator](https://github.com/tichachm/fronius_smart_meter_modbus_tcp_emulator), a script that implements a similar idea
+
 
 ## License
 
