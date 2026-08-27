@@ -9,7 +9,7 @@ otherwise can't see. It emulates a Fronius-compatible SunSpec Modbus TCP
 smart meter, fed live and combined from every configured inverter,
 each attributed to its own wired phase.
 
-![Logo](opendtu-fronius.jpg)
+![Logo](opendtu-fronius600.jpg)
 
 Once registered as an additional meter (role: **Generator**) in the
 GEN24's Device Configuration -> Components settings, the combined
