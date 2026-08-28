@@ -128,6 +128,11 @@ class InverterSource:
     constructing this directly); __post_init__ normalizes to a list either
     way.
     """
+    # Purely a label for humans -- never reaches MQTT, Modbus, or GEN24 (this
+    # design only ever serves one combined meter's identity, set globally in
+    # GlobalConfig). Just makes it easier to tell entries apart in the
+    # Configuration UI and in logs -- see label().
+    inverter_name: str = ""
     mqtt_base_topic: str = ""
     power_topic: list = field(default_factory=list)
     energy_topic: list = field(default_factory=list)
@@ -192,7 +197,8 @@ class InverterSource:
             self.reactive_power_topic = [f"{b}/+/0/reactivepower"]
 
     def label(self) -> str:
-        return f"{self.mqtt_base_topic or 'custom topics'} (phase L{self.meter_phase})"
+        ident = self.inverter_name or self.mqtt_base_topic or "custom topics"
+        return f"{ident} (phase L{self.meter_phase})"
 
 
 def load_inverters() -> list:
@@ -461,6 +467,23 @@ def update_registers(context: ModbusServerContext, inverters: list, readings_by_
         write(OFFSET_REACTIVE_POWER_BY_PHASE[phase], pt.reactive_power_var)
         write(OFFSET_POWER_FACTOR_BY_PHASE[phase], pt.power_factor)
 
+    # This is what actually goes out over Modbus TCP -- the combined,
+    # post-combine_phase() values, as opposed to updater_loop()'s
+    # "Aggregator totals" debug line, which shows each inverter's own
+    # reading *before* combination.
+    log.debug(
+        "Served registers: TOTAL power=%.1fW energy=%.1fWh frequency=%.2fHz "
+        "VA=%.1f VAR=%.1f PF=%.3f (current: not reported, see DOCS.md); %s",
+        total_power, total_energy, frequency, total_apparent, total_reactive,
+        total_power_factor,
+        "; ".join(
+            f"L{phase}: power={pt.power_w:.1f}W voltage={pt.voltage_v:.1f}V "
+            f"current={pt.current_a:.2f}A VA={pt.apparent_power_va:.1f} "
+            f"VAR={pt.reactive_power_var:.1f} PF={pt.power_factor:.3f}"
+            for phase, pt in phase_totals.items()
+        ),
+    )
+
 
 # --------------------------------------------------------------------------
 # MQTT aggregation
@@ -535,17 +558,18 @@ class Aggregator:
             log.warning("Non-numeric payload on %s: %r", topic, payload)
             return
         with self._lock:
-            for values, patterns in (
-                (self._power_values, self.cfg.power_topic),
-                (self._energy_values, self.cfg.energy_topic),
-                (self._voltage_values, self.cfg.voltage_topic),
-                (self._current_values, self.cfg.current_topic),
-                (self._frequency_values, self.cfg.frequency_topic),
-                (self._power_factor_values, self.cfg.power_factor_topic),
-                (self._reactive_power_values, self.cfg.reactive_power_topic),
+            for name, values, patterns in (
+                ("power", self._power_values, self.cfg.power_topic),
+                ("energy", self._energy_values, self.cfg.energy_topic),
+                ("voltage", self._voltage_values, self.cfg.voltage_topic),
+                ("current", self._current_values, self.cfg.current_topic),
+                ("frequency", self._frequency_values, self.cfg.frequency_topic),
+                ("power_factor", self._power_factor_values, self.cfg.power_factor_topic),
+                ("reactive_power", self._reactive_power_values, self.cfg.reactive_power_topic),
             ):
                 if topic in values or any(_topic_matches(topic, p) for p in patterns):
                     values[topic] = value
+                    log.debug("[%s] %s: %s = %s", self.cfg.label(), name, topic, value)
 
     @staticmethod
     def _average(values: dict) -> float:
@@ -651,15 +675,17 @@ def updater_loop(global_cfg: GlobalConfig, context: ModbusServerContext, sources
     inverters = [src for src, _ in sources]
     while not stop_event.is_set():
         readings = [agg.totals() for _, agg in sources]
-        update_registers(context, inverters, readings)
         log.debug(
-            "Updated registers: %s",
-            ", ".join(
+            "Aggregator totals (pre-combination, per inverter): %s",
+            "; ".join(
                 f"[{src.label()}] power={r.power_w:.1f}W energy={r.energy_wh:.1f}Wh "
-                f"voltage={r.voltage_v:.1f}V current={r.current_a:.2f}A"
+                f"voltage={r.voltage_v:.1f}V current={r.current_a:.2f}A "
+                f"frequency={r.frequency_hz:.2f}Hz power_factor={r.power_factor:.3f} "
+                f"reactive_power={r.reactive_power_var:.1f}VAR"
                 for src, r in zip(inverters, readings)
             ),
         )
+        update_registers(context, inverters, readings)
         # wait() both sleeps for update_interval seconds AND returns early if
         # stop_event gets set elsewhere -- this makes shutdown responsive
         # instead of waiting out a full sleep() first.

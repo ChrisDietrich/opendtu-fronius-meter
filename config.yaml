@@ -20,7 +20,7 @@
 # it's actually wired to.
 
 name: "OpenDTU Fronius Virtual Meter"
-version: "0.1.0"
+version: "0.1.1"
 slug: "opendtu_fronius_meter"
 description: >-
   Emulates one Fronius-compatible SunSpec Modbus TCP smart meter, fed
@@ -51,9 +51,11 @@ ports_description:
 # that file in sync when adding or renaming a field.
 #
 # `inverters` holds one entry per OpenDTU-managed inverter to combine into
-# that one meter. Most people only need to fill in each entry's first
-# field (mqtt_base_topic) and its Wired phase -- the seven topic fields
-# all get derived automatically from the base topic (see
+# that one meter. inverter_name is optional and purely cosmetic (never
+# reaches MQTT/Modbus/GEN24) -- just a label so entries are easy to tell
+# apart in this UI and in logs. Otherwise, most people only need
+# mqtt_base_topic and Wired phase -- the seven topic fields all get
+# derived automatically from the base topic (see
 # InverterSource._derive_topics_from_base() in opendtu_fronius_meter.py),
 # no need to look up an inverter's serial number or OpenDTU's exact topic
 # names. Home Assistant's Configuration UI doesn't show a description
@@ -73,7 +75,8 @@ options:
   meter_serial: "OTU00001"
   meter_device_address: 241
   inverters:
-    - mqtt_base_topic: ""
+    - inverter_name: ""
+      mqtt_base_topic: ""
       power_topic: ""
       energy_topic: ""
       energy_scale: 1000
@@ -97,7 +100,8 @@ schema:
   meter_serial: str
   meter_device_address: int
   inverters:
-    - mqtt_base_topic: str?
+    - inverter_name: str?
+      mqtt_base_topic: str?
       # All seven below are optional overrides now that mqtt_base_topic can
       # derive them.
       power_topic: str?

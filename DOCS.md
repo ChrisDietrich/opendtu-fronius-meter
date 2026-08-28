@@ -89,6 +89,9 @@ reference for what each one does.
 
 For each inverter entry, fill in just:
 
+- **Inverter name** (optional) -- a label so you can tell entries apart
+  in this list and in the log, e.g. "HM-1500" or "Garage roof". Purely
+  cosmetic -- never sent to MQTT, Modbus, or GEN24.
 - **OpenDTU base topic** -- the MQTT base topic that inverter's OpenDTU
   instance publishes under. Check OpenDTU's *Settings -> MQTT* page for
   "Topic". If you run one OpenDTU instance per inverter, each entry's

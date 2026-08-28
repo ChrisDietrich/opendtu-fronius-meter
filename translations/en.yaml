@@ -61,9 +61,11 @@ configuration:
       virtual meter above. Note: this list doesn't show a description
       under each individual field below (a Home Assistant UI limitation),
       so the key ones are summarized here -- full detail is in the
-      Documentation tab. Per entry: fill in "OpenDTU base topic" (from
-      OpenDTU's Settings -> MQTT page) and every topic field below it
-      derives automatically; set "Wired phase" to the physical phase this
+      Documentation tab. "Inverter name" is optional and purely cosmetic
+      (a label to tell entries apart here and in logs -- it's never sent
+      anywhere). Per entry: fill in "OpenDTU base topic" (from OpenDTU's
+      Settings -> MQTT page) and every topic field below it derives
+      automatically; set "Wired phase" to the physical phase this
       inverter is wired to (L1 if unsure, confirm later -- multiple
       inverters can share a phase, their contributions add). "Energy unit
       scale" is 1000 if this inverter's energy topic reports kWh
@@ -71,6 +73,13 @@ configuration:
       fields are advanced overrides -- only set them for a non-standard
       MQTT layout; each normally takes one topic but accepts a
       comma-separated list if you need to sum more than one.
+    inverter_name:
+      name: Inverter name (optional)
+      description: >-
+        A label for THIS entry, purely so you can tell entries apart in
+        this list and in the log -- e.g. "HM-1500" or "Garage roof".
+        Never sent to MQTT, Modbus, or GEN24. Leave empty and entries are
+        identified by their OpenDTU base topic instead.
     mqtt_base_topic:
       name: OpenDTU base topic
       description: >-
