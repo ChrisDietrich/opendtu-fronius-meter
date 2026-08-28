@@ -2,7 +2,7 @@
 # Settings -> Add-ons -> Add-on Store -> Repositories, using this repo's
 # URL (see repository.yaml).
 #
-# Serves ONE combined Fronius virtual meter, fed from any number of
+# Serves one combined Fronius virtual meter, fed from any number of
 # OpenDTU inverters (the `inverters` list below) -- see
 # opendtu_fronius_meter.py's module docstring for why this is one combined
 # meter rather than one per inverter: a real Fronius GEN24 rejects a
@@ -23,7 +23,7 @@ name: "OpenDTU Fronius Virtual Meter"
 version: "0.1.0"
 slug: "opendtu_fronius_meter"
 description: >-
-  Emulates ONE Fronius-compatible SunSpec Modbus TCP smart meter, fed
+  Emulates one Fronius-compatible SunSpec Modbus TCP smart meter, fed
   live and combined from any number of OpenDTU-managed inverters' MQTT
   data, so a Fronius GEN24's Energy Profiling picks it up as a single
   additional Generator source. Each inverter is attributed to its own
